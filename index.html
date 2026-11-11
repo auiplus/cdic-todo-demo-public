@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>รายการงาน To-Do</title>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #4f46e5;
+      --primary-dark: #4338ca;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --border: #e5e7eb;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Sarabun", "Segoe UI", Tahoma, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 560px;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      margin-bottom: 4px;
+      text-align: center;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .input-row input {
+      flex: 1;
+      padding: 10px 14px;
+      font-size: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .input-row input:focus {
+      border-color: var(--primary);
+    }
+
+    .btn {
+      border: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 1rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .filter-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .filter-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+
+    .stats-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .clear-done,
+    .clear-all {
+      background: none;
+      border: none;
+      color: var(--danger);
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .clear-done:hover,
+    .clear-all:hover {
+      text-decoration: underline;
+    }
+
+    .clear-all {
+      font-weight: 600;
+    }
+
+    ul.todo-list {
+      list-style: none;
+    }
+
+    .todo-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .todo-item:last-child {
+      border-bottom: none;
+    }
+
+    .todo-item input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--success);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .todo-text {
+      flex: 1;
+      font-size: 1rem;
+      word-break: break-word;
+    }
+
+    .todo-item.done .todo-text {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+
+    .delete-btn:hover {
+      color: var(--danger);
+      background: #fee2e2;
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 32px 0;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>📝 รายการงานของฉัน</h1>
+    <p class="subtitle">จดจ่ายงานของคุณไว้ในที่เดียว</p>
+
+    <div class="card">
+      <form class="input-row" id="todo-form">
+        <input
+          type="text"
+          id="todo-input"
+          placeholder="กรอกงานใหม่..."
+          autocomplete="off"
+          maxlength="200"
+        />
+        <button type="submit" class="btn btn-primary">เพิ่ม</button>
+      </form>
+
+      <div class="filters">
+        <button class="filter-btn active" data-filter="all">ทั้งหมด</button>
+        <button class="filter-btn" data-filter="active">ยังไม่ทำ</button>
+        <button class="filter-btn" data-filter="done">ทำเสร็จแล้ว</button>
+      </div>
+
+      <div class="stats">
+        <span id="stats-text">0 งาน</span>
+        <div class="stats-actions">
+          <button class="clear-done" id="clear-done" type="button">ลบงานที่ทำเสร็จ</button>
+          <button class="clear-all" id="clear-all" type="button">ล้างรายการทั้งหมด</button>
+        </div>
+      </div>
+
+      <ul class="todo-list" id="todo-list"></ul>
+      <p class="empty" id="empty-msg" style="display: none;">ยังไม่มีงานในหมวดนี้</p>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const STORAGE_KEY = "th-todo-items";
+      const FILTER_KEY = "th-todo-filter";
+
+      const form = document.getElementById("todo-form");
+      const input = document.getElementById("todo-input");
+      const list = document.getElementById("todo-list");
+      const emptyMsg = document.getElementById("empty-msg");
+      const statsText = document.getElementById("stats-text");
+      const clearDoneBtn = document.getElementById("clear-done");
+      const clearAllBtn = document.getElementById("clear-all");
+      const filterBtns = document.querySelectorAll(".filter-btn");
+
+      let todos = loadTodos();
+      let filter = loadFilter();
+
+      function loadTodos() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          const parsed = raw ? JSON.parse(raw) : [];
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
+      }
+
+      function saveTodos() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+      }
+
+      function loadFilter() {
+        const f = localStorage.getItem(FILTER_KEY);
+        return ["all", "active", "done"].includes(f) ? f : "all";
+      }
+
+      function saveFilter() {
+        localStorage.setItem(FILTER_KEY, filter);
+      }
+
+      function uid() {
+        return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+      }
+
+      function getVisibleTodos() {
+        if (filter === "active") return todos.filter((t) => !t.done);
+        if (filter === "done") return todos.filter((t) => t.done);
+        return todos;
+      }
+
+      function render() {
+        list.innerHTML = "";
+        const visible = getVisibleTodos();
+
+        emptyMsg.style.display = visible.length === 0 ? "block" : "none";
+
+        visible.forEach((todo) => {
+          const li = document.createElement("li");
+          li.className = "todo-item" + (todo.done ? " done" : "");
+
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.checked = todo.done;
+          checkbox.title = todo.done ? "ยังไม่ทำ" : "ทำเสร็จแล้ว";
+          checkbox.addEventListener("change", () => toggleTodo(todo.id));
+
+          const span = document.createElement("span");
+          span.className = "todo-text";
+          span.textContent = todo.text;
+
+          const delBtn = document.createElement("button");
+          delBtn.className = "delete-btn";
+          delBtn.textContent = "✕";
+          delBtn.title = "ลบงาน";
+          delBtn.addEventListener("click", () => deleteTodo(todo.id));
+
+          li.append(checkbox, span, delBtn);
+          list.appendChild(li);
+        });
+
+        const total = todos.length;
+        const doneCount = todos.filter((t) => t.done).length;
+        statsText.textContent = `${total} งาน (ทำเสร็จ ${doneCount})`;
+        clearDoneBtn.style.display = doneCount > 0 ? "inline" : "none";
+        clearAllBtn.style.display = total > 0 ? "inline" : "none";
+
+        filterBtns.forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.filter === filter);
+        });
+      }
+
+      function addTodo(text) {
+        todos.unshift({ id: uid(), text, done: false, createdAt: Date.now() });
+        saveTodos();
+        render();
+      }
+
+      function toggleTodo(id) {
+        const todo = todos.find((t) => t.id === id);
+        if (todo) {
+          todo.done = !todo.done;
+          saveTodos();
+          render();
+        }
+      }
+
+      function deleteTodo(id) {
+        todos = todos.filter((t) => t.id !== id);
+        saveTodos();
+        render();
+      }
+
+      function clearDone() {
+        todos = todos.filter((t) => !t.done);
+        saveTodos();
+        render();
+      }
+
+      function clearAll() {
+        if (todos.length === 0) return;
+        const confirmed = window.confirm("ต้องการล้างรายการงานทั้งหมดหรือไม่? การลบนี้เรียกคืนไม่ได้");
+        if (!confirmed) return;
+        todos = [];
+        saveTodos();
+        render();
+      }
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const text = input.value.trim();
+        if (!text) return;
+        addTodo(text);
+        input.value = "";
+        input.focus();
+      });
+
+      clearDoneBtn.addEventListener("click", clearDone);
+      clearAllBtn.addEventListener("click", clearAll);
+
+      filterBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          filter = btn.dataset.filter;
+          saveFilter();
+          render();
+        });
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>
