@@ -135,9 +135,19 @@
       font-size: 0.85rem;
       color: var(--muted);
       margin-bottom: 12px;
+      gap: 12px;
     }
 
-    .clear-done {
+    .stats-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .clear-done,
+    .clear-all {
       background: none;
       border: none;
       color: var(--danger);
@@ -146,8 +156,13 @@
       font-family: inherit;
     }
 
-    .clear-done:hover {
+    .clear-done:hover,
+    .clear-all:hover {
       text-decoration: underline;
+    }
+
+    .clear-all {
+      font-weight: 600;
     }
 
     ul.todo-list {
@@ -212,7 +227,7 @@
 </head>
 <body>
   <div class="app">
-    <h1>📝 รายการงาน</h1>
+    <h1>📝 รายการงานของฉัน</h1>
     <p class="subtitle">จดจ่ายงานของคุณไว้ในที่เดียว</p>
 
     <div class="card">
@@ -235,7 +250,10 @@
 
       <div class="stats">
         <span id="stats-text">0 งาน</span>
-        <button class="clear-done" id="clear-done">ลบงานที่ทำเสร็จ</button>
+        <div class="stats-actions">
+          <button class="clear-done" id="clear-done" type="button">ลบงานที่ทำเสร็จ</button>
+          <button class="clear-all" id="clear-all" type="button">ล้างรายการทั้งหมด</button>
+        </div>
       </div>
 
       <ul class="todo-list" id="todo-list"></ul>
@@ -256,6 +274,7 @@
       const emptyMsg = document.getElementById("empty-msg");
       const statsText = document.getElementById("stats-text");
       const clearDoneBtn = document.getElementById("clear-done");
+      const clearAllBtn = document.getElementById("clear-all");
       const filterBtns = document.querySelectorAll(".filter-btn");
 
       let todos = loadTodos();
@@ -328,6 +347,7 @@
         const doneCount = todos.filter((t) => t.done).length;
         statsText.textContent = `${total} งาน (ทำเสร็จ ${doneCount})`;
         clearDoneBtn.style.display = doneCount > 0 ? "inline" : "none";
+        clearAllBtn.style.display = total > 0 ? "inline" : "none";
 
         filterBtns.forEach((btn) => {
           btn.classList.toggle("active", btn.dataset.filter === filter);
@@ -361,6 +381,15 @@
         render();
       }
 
+      function clearAll() {
+        if (todos.length === 0) return;
+        const confirmed = window.confirm("ต้องการล้างรายการงานทั้งหมดหรือไม่? การลบนี้เรียกคืนไม่ได้");
+        if (!confirmed) return;
+        todos = [];
+        saveTodos();
+        render();
+      }
+
       form.addEventListener("submit", (e) => {
         e.preventDefault();
         const text = input.value.trim();
@@ -371,6 +400,7 @@
       });
 
       clearDoneBtn.addEventListener("click", clearDone);
+      clearAllBtn.addEventListener("click", clearAll);
 
       filterBtns.forEach((btn) => {
         btn.addEventListener("click", () => {
